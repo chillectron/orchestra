@@ -62,6 +62,18 @@ def ease(t):
     sqt = t**2
     return sqt / (2 * (sqt - t) + 1)
 
+
+def math_rotate1(oldx, oldy, centerx, centery, angle):
+
+	out = complex(oldx, -1*oldy) - complex(centerx, -1*centery)
+	out = out * complex(math.cos(math.radians(angle)), math.sin(math.radians(angle)))
+	out = out + complex(centerx, -1*centery)
+	items = 2
+	answ = [0.]*items
+	answ[0] = out.real
+	answ[1] = -1*out.imag
+	return answ
+
 def math_rotate(oldx, oldy, centerx, centery, angle):
 
 	out = complex(centerx, -1*centery) + complex(math.cos(math.radians(angle)), math.sin(math.radians(angle))) * (complex(oldx, -1*oldy) - complex(centerx, -1*centery))
@@ -108,7 +120,304 @@ class DOT:
 		self.dot_p = [0]*self.items
 		self.dot_p[0] = c.create_oval(posx-2, posy-2, posx+2, posy+2, outline='#FFFFFF',fill='#FFFFFF', width=2)
 
+class BOX:
+	def init(self, posx, posy, width, height):
+		self.posx = posx;
+		self.posy = posy;
+		self.items = 1
+		self.box_p = [0]*self.items
+		self.box_p_coords = [0]*self.items
+		self.box_p_coords_tmp = [0]*self.items
+		self.box_p_coords_tmp2 = [0]*self.items
+		self.box_p_coords_tmp3 = [0]*self.items
+		self.xmin_tmp = [0]*self.items
+		self.xmax_tmp = [0]*self.items
+		self.ymin_tmp = [0]*self.items
+		self.ymax_tmp = [0]*self.items
+
+		self.itr_move = 0
+		self.itr_rotate = 0
+		self.itr_scale = 0
+		self.no_of_itr_move = 0
+		self.no_of_itr_rotate = 0
+		self.no_of_itr_scale = 0
+		self.anglex = 0
+		self.angle = 0
+		self.deltax = 0
+		self.deltay = 0
+		self.deltax1 = 0
+		self.deltay1 = 0
+		self.scalex_int = 0
+		self.scaley_int = 0
+		self.deltay1 = 0
+		self.scalex = 0
+		self.scaley = 0
+
+		self.box_p_coords[0] = (posx-width/2, posy-height/2, posx+width/2, posy-height/2, posx+width/2, posy+height/2, posx-width/2, posy+height/2)
+		# print(self.box_p_coords[0])
+		self.reCenter()
+
+		self.box_p[0] = c.create_polygon(self.box_p_coords[0], fill='#FFFFFF', width=2)
+
+		self.appear = 1
+		self.scale(1,1,500)
+
+
+	def reCenter(self):
+
+		self.rotate_around_x = self.getCenter()[0]
+		self.rotate_around_y = self.getCenter()[1]
+
+	def getCenter(self):	
+		return [self.posx, self.posy]
+
+	def rotate_kernal(self):
+
+		for i in range(0, self.items):
+
+			self.evl = (math_rotate(self.box_p_coords[i][0], self.box_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.box_p_coords[i][0], self.box_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+									math_rotate(self.box_p_coords[i][2], self.box_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.box_p_coords[i][2], self.box_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+									math_rotate(self.box_p_coords[i][4], self.box_p_coords[i][5], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.box_p_coords[i][4], self.box_p_coords[i][5], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+									math_rotate(self.box_p_coords[i][6], self.box_p_coords[i][7], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.box_p_coords[i][6], self.box_p_coords[i][7], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
+
+			c.coords(self.box_p[i], self.evl)
+
+			self.box_p_coords_tmp[i] = (self.evl)
+
+	def rotate_trigger(self):
+		if self.itr_rotate == 0:
+			self.no_of_itr_rotate = self.animation_time*framerate/1000
+
+		self.itr_rotate = self.itr_rotate + 1
+
+		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
+
+		if self.itr_rotate > self.no_of_itr_rotate:
+			self.box_p_coords = self.box_p_coords_tmp[:]
+			# for i in range(0, self.items):
+			# 	self.box_p_coords_tmp[i] = (0,0,0,0)
+			return
+
+		self.rotate_kernal()
+		master.after(int(1000./framerate), self.rotate_trigger)
+
+	def rotate(self, angle, animation_time):
+	 	self.animation_time = animation_time
+	 	self.angle = angle
+	 	self.anglex = 0
+	 	self.itr_rotate = 0
+	 	self.rotate_around_x = self.getCenter()[0]
+	 	self.rotate_around_y = self.getCenter()[1]
+	 	self.rotate_trigger()
+
+	def move_kernal(self):
+		for i in range(0,self.items):
+
+			self.evl = (math_translate(self.box_p_coords[i][0], self.box_p_coords[i][1], self.deltax1, self.deltay1)[0],
+						math_translate(self.box_p_coords[i][0], self.box_p_coords[i][1], self.deltax1, self.deltay1)[1],
+						math_translate(self.box_p_coords[i][2], self.box_p_coords[i][3], self.deltax1, self.deltay1)[0],
+						math_translate(self.box_p_coords[i][2], self.box_p_coords[i][3], self.deltax1, self.deltay1)[1],
+						math_translate(self.box_p_coords[i][4], self.box_p_coords[i][5], self.deltax1, self.deltay1)[0],
+						math_translate(self.box_p_coords[i][4], self.box_p_coords[i][5], self.deltax1, self.deltay1)[1],
+						math_translate(self.box_p_coords[i][6], self.box_p_coords[i][7], self.deltax1, self.deltay1)[0],
+						math_translate(self.box_p_coords[i][6], self.box_p_coords[i][7], self.deltax1, self.deltay1)[1])
+
+			c.coords(self.box_p[i], self.evl)
+
+			self.box_p_coords_tmp[i] = (self.evl)
+
+	def move_trigger(self):
+		if self.itr_move == 0:
+			self.no_of_itr_move = self.animation_time * framerate/1000
+
+		self.itr_move = self.itr_move + 1
+
+		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
+		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
+
+		if self.itr_move > self.no_of_itr_move:
+			self.box_p_coords = self.box_p_coords_tmp[:]
+			# for i in range(0, self.items):
+			# 	self.box_p_coords_tmp[i] = (0,0,0,0)
+			return
+		self.move_kernal()
+		master.after(int(1000./framerate), self.move_trigger)
+
+	def translate(self, newposx, newposy, animation_time):
+	 	self.itr_move = 0
+	 	self.deltax1 = 0
+	 	self.deltay1 = 0
+	 	self.animation_time = animation_time
+	 	self.deltax = newposx - self.getCenter()[0]
+	 	self.deltay = newposy - self.getCenter()[1]
+	 	self.move_trigger()
+
+
+	def scrolate_kernal(self):
+		for i in range(0,self.items):
+
+			self.evl = (math_scale(self.box_p_coords[i][0],self.box_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+						math_scale(self.box_p_coords[i][0],self.box_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+						math_scale(self.box_p_coords[i][2],self.box_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+						math_scale(self.box_p_coords[i][2],self.box_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+						math_scale(self.box_p_coords[i][4],self.box_p_coords[i][5],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+						math_scale(self.box_p_coords[i][4],self.box_p_coords[i][5],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+						math_scale(self.box_p_coords[i][6],self.box_p_coords[i][7],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+						math_scale(self.box_p_coords[i][6],self.box_p_coords[i][7],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+			c.coords(self.box_p[i], self.evl)
+
+			self.box_p_coords_tmp[i] = self.evl
+
+			self.evl = (math_rotate(self.box_p_coords_tmp[i][0], self.box_p_coords_tmp[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.box_p_coords_tmp[i][0], self.box_p_coords_tmp[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+						math_rotate(self.box_p_coords_tmp[i][2], self.box_p_coords_tmp[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.box_p_coords_tmp[i][2], self.box_p_coords_tmp[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+						math_rotate(self.box_p_coords_tmp[i][4], self.box_p_coords_tmp[i][5], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.box_p_coords_tmp[i][4], self.box_p_coords_tmp[i][5], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+						math_rotate(self.box_p_coords_tmp[i][6], self.box_p_coords_tmp[i][7], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.box_p_coords_tmp[i][6], self.box_p_coords_tmp[i][7], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
+
+			c.coords(self.box_p[i], self.evl)
+
+			self.box_p_coords_tmp2[i] = self.evl
+
+			self.evl = (math_translate(self.box_p_coords_tmp2[i][0], self.box_p_coords_tmp2[i][1], self.deltax1, self.deltay1)[0],
+						math_translate(self.box_p_coords_tmp2[i][0], self.box_p_coords_tmp2[i][1], self.deltax1, self.deltay1)[1],
+						math_translate(self.box_p_coords_tmp2[i][2], self.box_p_coords_tmp2[i][3], self.deltax1, self.deltay1)[0],
+						math_translate(self.box_p_coords_tmp2[i][2], self.box_p_coords_tmp2[i][3], self.deltax1, self.deltay1)[1],
+						math_translate(self.box_p_coords_tmp2[i][4], self.box_p_coords_tmp2[i][5], self.deltax1, self.deltay1)[0],
+						math_translate(self.box_p_coords_tmp2[i][4], self.box_p_coords_tmp2[i][5], self.deltax1, self.deltay1)[1],
+						math_translate(self.box_p_coords_tmp2[i][6], self.box_p_coords_tmp2[i][7], self.deltax1, self.deltay1)[0],
+						math_translate(self.box_p_coords_tmp2[i][6], self.box_p_coords_tmp2[i][7], self.deltax1, self.deltay1)[1])
+
+			c.coords(self.box_p[i], self.evl)
+
+			self.box_p_coords_tmp3[i] = (self.evl)
+
+			
+	def scrolate_trigger(self):
+		if self.itr_move == 0:
+			self.no_of_itr_move = self.animation_time * framerate/1000
+
+		self.itr_move = self.itr_move + 1
+
+		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
+		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
+
+		if self.itr_rotate == 0:
+			self.no_of_itr_rotate = self.animation_time*framerate/1000
+
+		self.itr_rotate = self.itr_rotate + 1
+
+		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
+
+		# if self.itr_rotate > self.no_of_itr_rotate:
+		# 	self.box_p_coords = self.box_p_coords_tmp2[:]
+		# 	return
+
+		if self.itr_scale == 0:
+			self.no_of_itr_scale = self.animation_time*framerate/1000
+
+		self.itr_scale = self.itr_scale + 1
+
+		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
+		self.scaley_int = self.scaley * ease(self.itr_scale/ self.no_of_itr_scale)
+
+		if self.itr_scale > self.no_of_itr_scale:
+			self.box_p_coords = self.box_p_coords_tmp3[:]
+			# for i in range(0, self.items):
+			# 	self.box_p_coords_tmp[i] = (0,0,0,0)
+			return	
 		
+		self.scrolate_kernal()
+		master.after(int(1000./framerate), self.scrolate_trigger)
+
+	def scrolate(self, newposx, newposy, angle, scalex, scaley, animation_time):
+		self.itr_move = 0
+		self.deltax1 = 0
+		self.deltay1 = 0
+		self.animation_time = animation_time
+		self.deltax = newposx - self.getCenter()[0]
+		self.deltay = newposx - self.getCenter()[0]
+
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.itr_scale = 0
+		self.scaley = scaley
+		self.scalex = scalex
+
+		self.rotate_around_x = self.getCenter()[0]
+		self.rotate_around_y = self.getCenter()[1]
+		self.scrolate_trigger()
+
+	def scale_kernal(self):
+
+		if self.appear:
+			for i in range(0, self.items):
+
+				self.evl =  (math_appear(self.box_p_coords[i][0],self.box_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_appear(self.box_p_coords[i][0],self.box_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_appear(self.box_p_coords[i][2],self.box_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_appear(self.box_p_coords[i][2],self.box_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_appear(self.box_p_coords[i][4],self.box_p_coords[i][5],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_appear(self.box_p_coords[i][4],self.box_p_coords[i][5],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_appear(self.box_p_coords[i][6],self.box_p_coords[i][7],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_appear(self.box_p_coords[i][6],self.box_p_coords[i][7],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+				c.coords(self.box_p[i],self.evl)
+
+				self.box_p_coords_tmp[i] = self.evl
+		else:
+			for i in range(0, self.items):
+
+				self.evl =  (math_scale(self.box_p_coords[i][0],self.box_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_scale(self.box_p_coords[i][0],self.box_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_scale(self.box_p_coords[i][2],self.box_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_scale(self.box_p_coords[i][2],self.box_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_scale(self.box_p_coords[i][4],self.box_p_coords[i][5],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_scale(self.box_p_coords[i][4],self.box_p_coords[i][5],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_scale(self.box_p_coords[i][6],self.box_p_coords[i][7],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_scale(self.box_p_coords[i][6],self.box_p_coords[i][7],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+				c.coords(self.box_p[i],self.evl)
+
+				self.box_p_coords_tmp[i] = self.evl
+
+	def scale_trigger(self):
+		if self.itr_scale == 0:
+			self.no_of_itr_scale = self.animation_time*framerate/1000
+
+		self.itr_scale = self.itr_scale + 1
+
+		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
+		self.scaley_int = self.scaley * ease(self.itr_scale/ self.no_of_itr_scale)
+
+		if self.itr_scale > self.no_of_itr_scale:
+			self.box_p_coords = self.box_p_coords_tmp[:]
+			self.appear = 0
+			# for i in range(0, self.items):
+			# 	self.box_p_coords_tmp[i] = (0,0,0,0)
+			return
+
+		self.scale_kernal()
+		master.after(int(1000./framerate), self.scale_trigger)
+
+	def scale(self, scalex, scaley, animation_time):
+	 	self.animation_time = animation_time
+	 	self.itr_scale = 0
+	 	self.scaley = scaley
+	 	self.scalex = scalex
+	 	self.rotate_around_x = self.getCenter()[0]
+	 	self.rotate_around_y = self.getCenter()[1]
+	 	self.scale_trigger()
+
+	
 class RES:
 
 	def init(self, posx, posy, color='#FFFFFF'):
@@ -397,7 +706,6 @@ class RES:
 
 		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
 		self.scaley_int = self.scaley * ease(self.itr_scale/ self.no_of_itr_scale)
-		print(self.scaley_int)
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.res_p_coords = self.res_p_coords_tmp[:]
@@ -1044,7 +1352,7 @@ class PMOS:
 
 
 class WIRE:
-	def init(self, startx, starty, endx, endy, color='#FFFFFF'):
+	def init(self, startx, starty, endx, endy, width=2, color='#FFFFFF'):
 		self.startx = startx
 		self.starty = starty
 		self.endx = endx
@@ -1086,9 +1394,9 @@ class WIRE:
 
 		self.wire_p_coords[0] = (self.startx, self.starty, self.endx, self.endy)
 
-		self.reCenter()
+		# self.reCenter()
 
-		self.wire_p[0] = c.create_line(self.wire_p_coords[0], arrow='none', fill=self.color, width=2, joinstyle='bevel')
+		self.wire_p[0] = c.create_line(self.wire_p_coords[0], arrow='none', fill=self.color, width=width, joinstyle='bevel')
 
 		self.appear = 1
 		self.scale(1,1,500)
@@ -3409,6 +3717,601 @@ class WAVE2:
 	 	self.scale_trigger()
 
 
+class SUPPLY:
+
+	def init(self, posx, posy, color='#FFFFFF'):
+
+		self.posx = posx
+		self.posy = posy
+		self.color = color
+
+		self.items = 8
+		self.supply_p = [0]*self.items
+		self.supply_p_coords = [0]*self.items
+		self.supply_p_coords_tmp = [0]*self.items
+		self.supply_p_coords_tmp2 = [0]*self.items
+		self.supply_p_coords_tmp3 = [0]*self.items
+		self.xmin_tmp = [0]*self.items
+		self.xmax_tmp = [0]*self.items
+		self.ymin_tmp = [0]*self.items
+		self.ymax_tmp = [0]*self.items
+
+		self.itr_move = 0
+		self.itr_rotate = 0
+		self.itr_scale = 0
+		self.no_of_itr_move = 0
+		self.no_of_itr_rotate = 0
+		self.no_of_itr_scale = 0
+		self.anglex = 0
+		self.angle = 0
+		self.deltax = 0
+		self.deltay = 0
+		self.deltax1 = 0
+		self.deltay1 = 0
+		self.scalex_int = 0
+		self.scaley_int = 0
+		self.deltay1 = 0
+		self.scalex = 0
+		self.scaley = 0
+
+		self.supply_p_coords[0] = (posx-30, posy, posx+20, posy)
+		self.supply_p_coords[1] = (posx, posy, posx, posy+20)
+		self.supply_p_coords[2] = (posx-30, posy, posx-20, posy-15)
+		self.supply_p_coords[3] = (posx-20, posy, posx-10, posy-15)
+		self.supply_p_coords[4] = (posx-10, posy, posx, posy-15)
+		self.supply_p_coords[5] = (posx, posy, posx+10, posy-15)
+		self.supply_p_coords[6] = (posx+10, posy, posx+20, posy-15)
+		self.supply_p_coords[7] = (posx+20, posy, posx+30, posy-15)
+
+		self.reCenter()
+
+		self.supply_p[0] = c.create_line(self.supply_p_coords[0], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+		self.supply_p[1] = c.create_line(self.supply_p_coords[1], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+		self.supply_p[2] = c.create_line(self.supply_p_coords[2], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+		self.supply_p[3] = c.create_line(self.supply_p_coords[3], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+		self.supply_p[4] = c.create_line(self.supply_p_coords[4], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+		self.supply_p[5] = c.create_line(self.supply_p_coords[5], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+		self.supply_p[6] = c.create_line(self.supply_p_coords[6], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+		self.supply_p[7] = c.create_line(self.supply_p_coords[7], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+
+		self.appear = 1
+		self.scale(1,1,500)
+
+
+	def getTerminals(self):
+		return [[self.supply_p_coords[0][0], self.supply_p_coords[0][1]], [self.supply_p_coords[11][2], self.supply_p_coords[11][3]]]
+
+	def reCenter(self):
+		self.rotate_around_x_old = self.getCenter()[0]
+		self.rotate_around_y_old = self.getCenter()[1]
+
+		for i in range(0, self.items):
+			self.supply_p_coords[i] = (self.supply_p_coords[i][0] + self.posx - self.rotate_around_x_old, self.supply_p_coords[i][1] + self.posy - self.rotate_around_y_old, self.supply_p_coords[i][2] + self.posx - self.rotate_around_x_old, self.supply_p_coords[i][3] + self.posy -self.rotate_around_y_old)
+
+		self.rotate_around_x = self.getCenter()[0]
+		self.rotate_around_y = self.getCenter()[1]
+
+	def getCenter(self):
+		for i in range(0, self.items):
+			self.xmin_tmp[i] = min(self.supply_p_coords[i][0], self.supply_p_coords[i][2])
+			self.xmax_tmp[i] = max(self.supply_p_coords[i][0], self.supply_p_coords[i][2])
+			self.ymin_tmp[i] = min(self.supply_p_coords[i][1], self.supply_p_coords[i][3])
+			self.ymax_tmp[i] = max(self.supply_p_coords[i][1], self.supply_p_coords[i][3])
+		return [(min(self.xmin_tmp) + max(self.xmax_tmp))/2, (min(self.ymin_tmp) + max(self.ymax_tmp))/2]
+
+	def rotate_kernal(self):
+
+		for i in range(0, self.items):
+
+			self.evl =  (math_rotate(self.supply_p_coords[i][0], self.supply_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.supply_p_coords[i][0], self.supply_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+									math_rotate(self.supply_p_coords[i][2], self.supply_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.supply_p_coords[i][2], self.supply_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
+			c.coords(self.supply_p[i],self.evl)
+
+			self.supply_p_coords_tmp[i] = self.evl
+
+	def rotate_trigger(self):
+		if self.itr_rotate == 0:
+			self.no_of_itr_rotate = self.animation_time*framerate/1000
+
+		self.itr_rotate = self.itr_rotate + 1
+
+		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
+
+		if self.itr_rotate > self.no_of_itr_rotate:
+			self.supply_p_coords = self.supply_p_coords_tmp[:]
+			# for i in range(0, self.items):
+			# 	self.supply_p_coords_tmp[i] = (0,0,0,0)
+			return
+
+		self.rotate_kernal()
+		master.after(int(1000./framerate), self.rotate_trigger)
+
+	def rotate(self, angle, animation_time):
+	 	self.animation_time = animation_time
+	 	self.angle = angle
+	 	self.anglex = 0
+	 	self.itr_rotate = 0
+	 	self.rotate_around_x = self.getCenter()[0]
+	 	self.rotate_around_y = self.getCenter()[1]
+	 	self.rotate_trigger()
+
+	def move_kernal(self):
+		for i in range(0,self.items):
+
+			self.evl = (math_translate(self.supply_p_coords[i][0], self.supply_p_coords[i][1], self.deltax1, self.deltay1)[0],
+									math_translate(self.supply_p_coords[i][0], self.supply_p_coords[i][1], self.deltax1, self.deltay1)[1],
+									math_translate(self.supply_p_coords[i][2], self.supply_p_coords[i][3], self.deltax1, self.deltay1)[0],
+									math_translate(self.supply_p_coords[i][2], self.supply_p_coords[i][3], self.deltax1, self.deltay1)[1])
+
+			c.coords(self.supply_p[i], self.evl)
+
+			self.supply_p_coords_tmp[i] = (self.evl)
+
+	def move_trigger(self):
+		if self.itr_move == 0:
+			self.no_of_itr_move = self.animation_time * framerate/1000
+
+		self.itr_move = self.itr_move + 1
+
+		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
+		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
+
+		if self.itr_move > self.no_of_itr_move:
+			self.supply_p_coords = self.supply_p_coords_tmp[:]
+			# for i in range(0, self.items):
+			# 	self.supply_p_coords_tmp[i] = (0,0,0,0)
+			return
+		self.move_kernal()
+		master.after(int(1000./framerate), self.move_trigger)
+
+	def translate(self, newposx, newposy, animation_time):
+	 	self.itr_move = 0
+	 	self.deltax1 = 0
+	 	self.deltay1 = 0
+	 	self.animation_time = animation_time
+	 	self.deltax = newposx - self.getCenter()[0]
+	 	self.deltay = newposy - self.getCenter()[1]
+	 	self.move_trigger()
+
+
+	def scrolate_kernal(self):
+		for i in range(0,self.items):
+
+			self.evl = (math_scale(self.supply_p_coords[i][0],self.supply_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+						math_scale(self.supply_p_coords[i][0],self.supply_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+						math_scale(self.supply_p_coords[i][2],self.supply_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+						math_scale(self.supply_p_coords[i][2],self.supply_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+			c.coords(self.supply_p[i], self.evl)
+
+			self.supply_p_coords_tmp[i] = self.evl
+
+			self.evl = (math_rotate(self.supply_p_coords_tmp[i][0], self.supply_p_coords_tmp[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.supply_p_coords_tmp[i][0], self.supply_p_coords_tmp[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+									math_rotate(self.supply_p_coords_tmp[i][2], self.supply_p_coords_tmp[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.supply_p_coords_tmp[i][2], self.supply_p_coords_tmp[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
+
+			c.coords(self.supply_p[i], self.evl)
+
+			self.supply_p_coords_tmp2[i] = self.evl
+
+			self.evl = (math_translate(self.supply_p_coords_tmp2[i][0], self.supply_p_coords_tmp2[i][1], self.deltax1, self.deltay1)[0],
+									math_translate(self.supply_p_coords_tmp2[i][0], self.supply_p_coords_tmp2[i][1], self.deltax1, self.deltay1)[1],
+									math_translate(self.supply_p_coords_tmp2[i][2], self.supply_p_coords_tmp2[i][3], self.deltax1, self.deltay1)[0],
+									math_translate(self.supply_p_coords_tmp2[i][2], self.supply_p_coords_tmp2[i][3], self.deltax1, self.deltay1)[1])
+
+			c.coords(self.supply_p[i], self.evl)
+
+			self.supply_p_coords_tmp3[i] = (self.evl)
+
+			
+	def scrolate_trigger(self):
+		if self.itr_move == 0:
+			self.no_of_itr_move = self.animation_time * framerate/1000
+
+		self.itr_move = self.itr_move + 1
+
+		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
+		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
+
+		if self.itr_rotate == 0:
+			self.no_of_itr_rotate = self.animation_time*framerate/1000
+
+		self.itr_rotate = self.itr_rotate + 1
+
+		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
+
+		# if self.itr_rotate > self.no_of_itr_rotate:
+		# 	self.supply_p_coords = self.supply_p_coords_tmp2[:]
+		# 	return
+
+		if self.itr_scale == 0:
+			self.no_of_itr_scale = self.animation_time*framerate/1000
+
+		self.itr_scale = self.itr_scale + 1
+
+		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
+		self.scaley_int = self.scaley * ease(self.itr_scale/ self.no_of_itr_scale)
+
+		if self.itr_scale > self.no_of_itr_scale:
+			self.supply_p_coords = self.supply_p_coords_tmp3[:]
+			# for i in range(0, self.items):
+			# 	self.supply_p_coords_tmp[i] = (0,0,0,0)
+			return	
+		
+		self.scrolate_kernal()
+		master.after(int(1000./framerate), self.scrolate_trigger)
+
+	def scrolate(self, newposx, newposy, angle, scalex, scaley, animation_time):
+		self.itr_move = 0
+		self.deltax1 = 0
+		self.deltay1 = 0
+		self.animation_time = animation_time
+		self.deltax = newposx - self.getCenter()[0]
+		self.deltay = newposx - self.getCenter()[0]
+
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.itr_scale = 0
+		self.scaley = scaley
+		self.scalex = scalex
+
+		self.rotate_around_x = self.getCenter()[0]
+		self.rotate_around_y = self.getCenter()[1]
+		self.scrolate_trigger()
+
+	def scale_kernal(self):
+
+		if self.appear:
+
+			for i in range(0, self.items):
+
+				self.evl =  (math_appear(self.supply_p_coords[i][0],self.supply_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_appear(self.supply_p_coords[i][0],self.supply_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_appear(self.supply_p_coords[i][2],self.supply_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_appear(self.supply_p_coords[i][2],self.supply_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+				c.coords(self.supply_p[i],self.evl)
+
+				self.supply_p_coords_tmp[i] = self.evl
+		else:
+			for i in range(0, self.items):
+
+				self.evl =  (math_scale(self.supply_p_coords[i][0],self.supply_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_scale(self.supply_p_coords[i][0],self.supply_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_scale(self.supply_p_coords[i][2],self.supply_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_scale(self.supply_p_coords[i][2],self.supply_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+				c.coords(self.supply_p[i],self.evl)
+
+				self.supply_p_coords_tmp[i] = self.evl
+
+	def scale_trigger(self):
+		if self.itr_scale == 0:
+			self.no_of_itr_scale = self.animation_time*framerate/1000
+
+		self.itr_scale = self.itr_scale + 1
+
+		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
+		self.scaley_int = self.scaley * ease(self.itr_scale/ self.no_of_itr_scale)
+
+		if self.itr_scale > self.no_of_itr_scale:
+			self.supply_p_coords = self.supply_p_coords_tmp[:]
+			self.appear = 0
+			# for i in range(0, self.items):
+			# 	self.supply_p_coords_tmp[i] = (0,0,0,0)
+			return
+
+		self.scale_kernal()
+		master.after(int(1000./framerate), self.scale_trigger)
+
+	def scale(self, scalex, scaley, animation_time):
+	 	self.animation_time = animation_time
+	 	self.itr_scale = 0
+	 	self.scaley = scaley
+	 	self.scalex = scalex
+	 	self.rotate_around_x = self.getCenter()[0]
+	 	self.rotate_around_y = self.getCenter()[1]
+	 	self.scale_trigger()
+
+class GROUND:
+
+	def init(self, posx, posy, color='#FFFFFF'):
+
+		self.posx = posx
+		self.posy = posy
+		self.color = color
+
+		self.items = 4
+		self.ground_p = [0]*self.items
+		self.ground_p_coords = [0]*self.items
+		self.ground_p_coords_tmp = [0]*self.items
+		self.ground_p_coords_tmp2 = [0]*self.items
+		self.ground_p_coords_tmp3 = [0]*self.items
+		self.xmin_tmp = [0]*self.items
+		self.xmax_tmp = [0]*self.items
+		self.ymin_tmp = [0]*self.items
+		self.ymax_tmp = [0]*self.items
+
+		self.itr_move = 0
+		self.itr_rotate = 0
+		self.itr_scale = 0
+		self.no_of_itr_move = 0
+		self.no_of_itr_rotate = 0
+		self.no_of_itr_scale = 0
+		self.anglex = 0
+		self.angle = 0
+		self.deltax = 0
+		self.deltay = 0
+		self.deltax1 = 0
+		self.deltay1 = 0
+		self.scalex_int = 0
+		self.scaley_int = 0
+		self.deltay1 = 0
+		self.scalex = 0
+		self.scaley = 0
+
+		self.ground_p_coords[0] = (posx, posy, posx, posy-20)
+		self.ground_p_coords[1] = (posx-10, posy, posx+10, posy)
+		self.ground_p_coords[2] = (posx-10, posy, posx, posy+20)
+		self.ground_p_coords[3] = (posx+10, posy, posx, posy+20)
+
+		self.reCenter()
+
+		self.ground_p[0] = c.create_line(self.ground_p_coords[0], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+		self.ground_p[1] = c.create_line(self.ground_p_coords[1], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+		self.ground_p[2] = c.create_line(self.ground_p_coords[2], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+		self.ground_p[3] = c.create_line(self.ground_p_coords[3], arrow='none', fill=self.color, width=2, capstyle=ROUND)
+
+		self.appear = 1
+		self.scale(1,1,500)
+
+
+	def getTerminals(self):
+		return [[self.ground_p_coords[0][0], self.ground_p_coords[0][1]], [self.ground_p_coords[11][2], self.ground_p_coords[11][3]]]
+
+	def reCenter(self):
+		self.rotate_around_x_old = self.getCenter()[0]
+		self.rotate_around_y_old = self.getCenter()[1]
+
+		for i in range(0, self.items):
+			self.ground_p_coords[i] = (self.ground_p_coords[i][0] + self.posx - self.rotate_around_x_old, self.ground_p_coords[i][1] + self.posy - self.rotate_around_y_old, self.ground_p_coords[i][2] + self.posx - self.rotate_around_x_old, self.ground_p_coords[i][3] + self.posy -self.rotate_around_y_old)
+
+		self.rotate_around_x = self.getCenter()[0]
+		self.rotate_around_y = self.getCenter()[1]
+
+	def getCenter(self):
+		for i in range(0, self.items):
+			self.xmin_tmp[i] = min(self.ground_p_coords[i][0], self.ground_p_coords[i][2])
+			self.xmax_tmp[i] = max(self.ground_p_coords[i][0], self.ground_p_coords[i][2])
+			self.ymin_tmp[i] = min(self.ground_p_coords[i][1], self.ground_p_coords[i][3])
+			self.ymax_tmp[i] = max(self.ground_p_coords[i][1], self.ground_p_coords[i][3])
+		return [(min(self.xmin_tmp) + max(self.xmax_tmp))/2, (min(self.ymin_tmp) + max(self.ymax_tmp))/2]
+
+	def rotate_kernal(self):
+
+		for i in range(0, self.items):
+
+			self.evl =  (math_rotate(self.ground_p_coords[i][0], self.ground_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.ground_p_coords[i][0], self.ground_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+									math_rotate(self.ground_p_coords[i][2], self.ground_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.ground_p_coords[i][2], self.ground_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
+			c.coords(self.ground_p[i],self.evl)
+
+			self.ground_p_coords_tmp[i] = self.evl
+
+	def rotate_trigger(self):
+		if self.itr_rotate == 0:
+			self.no_of_itr_rotate = self.animation_time*framerate/1000
+
+		self.itr_rotate = self.itr_rotate + 1
+
+		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
+
+		if self.itr_rotate > self.no_of_itr_rotate:
+			self.ground_p_coords = self.ground_p_coords_tmp[:]
+			# for i in range(0, self.items):
+			# 	self.ground_p_coords_tmp[i] = (0,0,0,0)
+			return
+
+		self.rotate_kernal()
+		master.after(int(1000./framerate), self.rotate_trigger)
+
+	def rotate(self, angle, animation_time):
+	 	self.animation_time = animation_time
+	 	self.angle = angle
+	 	self.anglex = 0
+	 	self.itr_rotate = 0
+	 	self.rotate_around_x = self.getCenter()[0]
+	 	self.rotate_around_y = self.getCenter()[1]
+	 	self.rotate_trigger()
+
+	def move_kernal(self):
+		for i in range(0,self.items):
+
+			self.evl = (math_translate(self.ground_p_coords[i][0], self.ground_p_coords[i][1], self.deltax1, self.deltay1)[0],
+									math_translate(self.ground_p_coords[i][0], self.ground_p_coords[i][1], self.deltax1, self.deltay1)[1],
+									math_translate(self.ground_p_coords[i][2], self.ground_p_coords[i][3], self.deltax1, self.deltay1)[0],
+									math_translate(self.ground_p_coords[i][2], self.ground_p_coords[i][3], self.deltax1, self.deltay1)[1])
+
+			c.coords(self.ground_p[i], self.evl)
+
+			self.ground_p_coords_tmp[i] = (self.evl)
+
+	def move_trigger(self):
+		if self.itr_move == 0:
+			self.no_of_itr_move = self.animation_time * framerate/1000
+
+		self.itr_move = self.itr_move + 1
+
+		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
+		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
+
+		if self.itr_move > self.no_of_itr_move:
+			self.ground_p_coords = self.ground_p_coords_tmp[:]
+			# for i in range(0, self.items):
+			# 	self.ground_p_coords_tmp[i] = (0,0,0,0)
+			return
+		self.move_kernal()
+		master.after(int(1000./framerate), self.move_trigger)
+
+	def translate(self, newposx, newposy, animation_time):
+	 	self.itr_move = 0
+	 	self.deltax1 = 0
+	 	self.deltay1 = 0
+	 	self.animation_time = animation_time
+	 	self.deltax = newposx - self.getCenter()[0]
+	 	self.deltay = newposy - self.getCenter()[1]
+	 	self.move_trigger()
+
+
+	def scrolate_kernal(self):
+		for i in range(0,self.items):
+
+			self.evl = (math_scale(self.ground_p_coords[i][0],self.ground_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+						math_scale(self.ground_p_coords[i][0],self.ground_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+						math_scale(self.ground_p_coords[i][2],self.ground_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+						math_scale(self.ground_p_coords[i][2],self.ground_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+			c.coords(self.ground_p[i], self.evl)
+
+			self.ground_p_coords_tmp[i] = self.evl
+
+			self.evl = (math_rotate(self.ground_p_coords_tmp[i][0], self.ground_p_coords_tmp[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.ground_p_coords_tmp[i][0], self.ground_p_coords_tmp[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+									math_rotate(self.ground_p_coords_tmp[i][2], self.ground_p_coords_tmp[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+									math_rotate(self.ground_p_coords_tmp[i][2], self.ground_p_coords_tmp[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
+
+			c.coords(self.ground_p[i], self.evl)
+
+			self.ground_p_coords_tmp2[i] = self.evl
+
+			self.evl = (math_translate(self.ground_p_coords_tmp2[i][0], self.ground_p_coords_tmp2[i][1], self.deltax1, self.deltay1)[0],
+									math_translate(self.ground_p_coords_tmp2[i][0], self.ground_p_coords_tmp2[i][1], self.deltax1, self.deltay1)[1],
+									math_translate(self.ground_p_coords_tmp2[i][2], self.ground_p_coords_tmp2[i][3], self.deltax1, self.deltay1)[0],
+									math_translate(self.ground_p_coords_tmp2[i][2], self.ground_p_coords_tmp2[i][3], self.deltax1, self.deltay1)[1])
+
+			c.coords(self.ground_p[i], self.evl)
+
+			self.ground_p_coords_tmp3[i] = (self.evl)
+
+			
+	def scrolate_trigger(self):
+		if self.itr_move == 0:
+			self.no_of_itr_move = self.animation_time * framerate/1000
+
+		self.itr_move = self.itr_move + 1
+
+		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
+		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
+
+		if self.itr_rotate == 0:
+			self.no_of_itr_rotate = self.animation_time*framerate/1000
+
+		self.itr_rotate = self.itr_rotate + 1
+
+		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
+
+		# if self.itr_rotate > self.no_of_itr_rotate:
+		# 	self.ground_p_coords = self.ground_p_coords_tmp2[:]
+		# 	return
+
+		if self.itr_scale == 0:
+			self.no_of_itr_scale = self.animation_time*framerate/1000
+
+		self.itr_scale = self.itr_scale + 1
+
+		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
+		self.scaley_int = self.scaley * ease(self.itr_scale/ self.no_of_itr_scale)
+
+		if self.itr_scale > self.no_of_itr_scale:
+			self.ground_p_coords = self.ground_p_coords_tmp3[:]
+			# for i in range(0, self.items):
+			# 	self.ground_p_coords_tmp[i] = (0,0,0,0)
+			return	
+		
+		self.scrolate_kernal()
+		master.after(int(1000./framerate), self.scrolate_trigger)
+
+	def scrolate(self, newposx, newposy, angle, scalex, scaley, animation_time):
+		self.itr_move = 0
+		self.deltax1 = 0
+		self.deltay1 = 0
+		self.animation_time = animation_time
+		self.deltax = newposx - self.getCenter()[0]
+		self.deltay = newposx - self.getCenter()[0]
+
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.itr_scale = 0
+		self.scaley = scaley
+		self.scalex = scalex
+
+		self.rotate_around_x = self.getCenter()[0]
+		self.rotate_around_y = self.getCenter()[1]
+		self.scrolate_trigger()
+
+	def scale_kernal(self):
+
+		if self.appear:
+
+			for i in range(0, self.items):
+
+				self.evl =  (math_appear(self.ground_p_coords[i][0],self.ground_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_appear(self.ground_p_coords[i][0],self.ground_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_appear(self.ground_p_coords[i][2],self.ground_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_appear(self.ground_p_coords[i][2],self.ground_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+				c.coords(self.ground_p[i],self.evl)
+
+				self.ground_p_coords_tmp[i] = self.evl
+		else:
+			for i in range(0, self.items):
+
+				self.evl =  (math_scale(self.ground_p_coords[i][0],self.ground_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_scale(self.ground_p_coords[i][0],self.ground_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_scale(self.ground_p_coords[i][2],self.ground_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_scale(self.ground_p_coords[i][2],self.ground_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+				c.coords(self.ground_p[i],self.evl)
+
+				self.ground_p_coords_tmp[i] = self.evl
+
+	def scale_trigger(self):
+		if self.itr_scale == 0:
+			self.no_of_itr_scale = self.animation_time*framerate/1000
+
+		self.itr_scale = self.itr_scale + 1
+
+		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
+		self.scaley_int = self.scaley * ease(self.itr_scale/ self.no_of_itr_scale)
+
+		if self.itr_scale > self.no_of_itr_scale:
+			self.ground_p_coords = self.ground_p_coords_tmp[:]
+			self.appear = 0
+			# for i in range(0, self.items):
+			# 	self.ground_p_coords_tmp[i] = (0,0,0,0)
+			return
+
+		self.scale_kernal()
+		master.after(int(1000./framerate), self.scale_trigger)
+
+	def scale(self, scalex, scaley, animation_time):
+	 	self.animation_time = animation_time
+	 	self.itr_scale = 0
+	 	self.scaley = scaley
+	 	self.scalex = scalex
+	 	self.rotate_around_x = self.getCenter()[0]
+	 	self.rotate_around_y = self.getCenter()[1]
+	 	self.scale_trigger()
+
+
+
+
 class Orchestra:
 
 	def __init__(self):
@@ -3425,13 +4328,6 @@ class Orchestra:
 	def animate(self):	 	
 	 	self.animate_trigger()
 
-# vcvs = VCVS(100,100)
-# vccs = VCCS(200,100)
-# res = RES(300,100)
-# nmos = NMOS(400,100,0)
-# nmos1 = NMOS(500,100,1)
-# pmos = PMOS(600,100,0)
-# pmos1 = PMOS()
 
 o = Orchestra()
 o.animate()
