@@ -62,54 +62,24 @@ def ease(t):
     sqt = t**2
     return sqt / (2 * (sqt - t) + 1)
 
-
-def math_rotate1(oldx, oldy, centerx, centery, angle):
-
-	out = complex(oldx, -1*oldy) - complex(centerx, -1*centery)
-	out = out * complex(math.cos(math.radians(angle)), math.sin(math.radians(angle)))
-	out = out + complex(centerx, -1*centery)
-	items = 2
-	answ = [0.]*items
-	answ[0] = out.real
-	answ[1] = -1*out.imag
-	return answ
-
 def math_rotate(oldx, oldy, centerx, centery, angle):
 
 	out = complex(centerx, -1*centery) + complex(math.cos(math.radians(angle)), math.sin(math.radians(angle))) * (complex(oldx, -1*oldy) - complex(centerx, -1*centery))
-	items = 2
-	answ = [0.]*items
-	answ[0] = out.real
-	answ[1] = -1*out.imag
-	return answ
+	return [out.real, -1*out.imag]
 
 def math_translate(oldx, oldy, deltax, deltay):
 	out = complex(oldx, -1*oldy) + complex(deltax, -1*deltay)
-	items = 2
-	answ = [0.]*items
-	answ[0] = out.real
-	answ[1] = -1*out.imag
-	return answ
+	return [out.real, -1*out.imag]
 
 def math_scale(oldx, oldy, centerx, centery, scale_x, scale_y):
 	out = complex(oldx, -1*oldy) - complex(centerx,  -1*centery)
-	out = complex(out.real*scale_x, out.imag*scale_y)
-	out = out + complex(oldx, -1*oldy)
-	items = 2
-	answ = [0.]*items
-	answ[0] = out.real
-	answ[1] = -1*out.imag
-	return answ
+	out = complex(out.real*scale_x, out.imag*scale_y) + complex(oldx, -1*oldy)
+	return [out.real, -1*out.imag]
 
 def math_appear(oldx, oldy, centerx, centery, scale_x, scale_y):
 	out = complex(oldx, -1*oldy) - complex(centerx,  -1*centery)
-	out = out * complex(scale_x, 0)
-	out = out + complex(centerx, -1*centery)
-	items = 2
-	answ = [0.]*items
-	answ[0] = out.real
-	answ[1] = -1*out.imag
-	return answ
+	out = out * complex(scale_x, 0) + complex(centerx, -1*centery)
+	return [out.real, -1*out.imag]
 
 
 class DOT:
@@ -154,7 +124,7 @@ class BOX:
 		self.scaley = 0
 
 		self.box_p_coords[0] = (posx-width/2, posy-height/2, posx+width/2, posy-height/2, posx+width/2, posy+height/2, posx-width/2, posy+height/2)
-		# print(self.box_p_coords[0])
+
 		self.reCenter()
 
 		self.box_p[0] = c.create_polygon(self.box_p_coords[0], fill='#FFFFFF', width=2)
@@ -176,34 +146,30 @@ class BOX:
 		for i in range(0, self.items):
 
 			self.evl = (math_rotate(self.box_p_coords[i][0], self.box_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
-									math_rotate(self.box_p_coords[i][0], self.box_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
-									math_rotate(self.box_p_coords[i][2], self.box_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
-									math_rotate(self.box_p_coords[i][2], self.box_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
-									math_rotate(self.box_p_coords[i][4], self.box_p_coords[i][5], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
-									math_rotate(self.box_p_coords[i][4], self.box_p_coords[i][5], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
-									math_rotate(self.box_p_coords[i][6], self.box_p_coords[i][7], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
-									math_rotate(self.box_p_coords[i][6], self.box_p_coords[i][7], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
+						math_rotate(self.box_p_coords[i][0], self.box_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+						math_rotate(self.box_p_coords[i][2], self.box_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.box_p_coords[i][2], self.box_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+						math_rotate(self.box_p_coords[i][4], self.box_p_coords[i][5], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.box_p_coords[i][4], self.box_p_coords[i][5], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+						math_rotate(self.box_p_coords[i][6], self.box_p_coords[i][7], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.box_p_coords[i][6], self.box_p_coords[i][7], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
 
 			c.coords(self.box_p[i], self.evl)
 
 			self.box_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
-
+		
 		self.itr_rotate = self.itr_rotate + 1
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.box_p_coords = self.box_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.box_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
-		master.after(int(1000./framerate), self.rotate_trigger)
+		master.after(int(1000/framerate), self.rotate_trigger)
 
 	def rotate(self, angle, animation_time):
 	 	self.animation_time = animation_time
@@ -212,6 +178,7 @@ class BOX:
 	 	self.itr_rotate = 0
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_trigger()
 
 	def move_kernal(self):
@@ -231,8 +198,6 @@ class BOX:
 			self.box_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -251,6 +216,7 @@ class BOX:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -301,16 +267,11 @@ class BOX:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
-
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -319,9 +280,6 @@ class BOX:
 		# if self.itr_rotate > self.no_of_itr_rotate:
 		# 	self.box_p_coords = self.box_p_coords_tmp2[:]
 		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -349,6 +307,10 @@ class BOX:
 		self.anglex = 0
 		self.itr_rotate = 0
 		self.itr_scale = 0
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.no_of_itr_move
+		self.no_of_itr_scale = self.no_of_itr_rotate
+
 		self.scaley = scaley
 		self.scalex = scalex
 
@@ -390,8 +352,6 @@ class BOX:
 				self.box_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -401,8 +361,6 @@ class BOX:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.box_p_coords = self.box_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.box_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -413,6 +371,7 @@ class BOX:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -513,16 +472,14 @@ class RES:
 		for i in range(0, self.items):
 
 			self.evl =  (math_rotate(self.res_p_coords[i][0], self.res_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
-									math_rotate(self.res_p_coords[i][0], self.res_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
-									math_rotate(self.res_p_coords[i][2], self.res_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
-									math_rotate(self.res_p_coords[i][2], self.res_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
+						math_rotate(self.res_p_coords[i][0], self.res_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+						math_rotate(self.res_p_coords[i][2], self.res_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.res_p_coords[i][2], self.res_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
 			c.coords(self.res_p[i],self.evl)
 
 			self.res_p_coords_tmp[i] = self.evl
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -530,8 +487,6 @@ class RES:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.res_p_coords = self.res_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.res_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -544,6 +499,7 @@ class RES:
 	 	self.itr_rotate = 0
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_trigger()
 
 	def move_kernal(self):
@@ -559,8 +515,6 @@ class RES:
 			self.res_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -580,6 +534,7 @@ class RES:
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
 	 	self.animation_time = animation_time
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
 	 	self.move_trigger()
@@ -617,27 +572,15 @@ class RES:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
 
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
-
 		self.itr_rotate = self.itr_rotate + 1
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
-
-		# if self.itr_rotate > self.no_of_itr_rotate:
-		# 	self.res_p_coords = self.res_p_coords_tmp2[:]
-		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -646,8 +589,6 @@ class RES:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.res_p_coords = self.res_p_coords_tmp3[:]
-			# for i in range(0, self.items):
-			# 	self.res_p_coords_tmp[i] = (0,0,0,0)
 			return	
 		
 		self.scrolate_kernal()
@@ -660,6 +601,10 @@ class RES:
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposx - self.getCenter()[0]
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		self.no_of_itr_scale = self.animation_time*framerate/1000
+		self.no_of_itr_move = self.animation_time*framerate/1000
+
 
 		self.angle = angle
 		self.anglex = 0
@@ -667,6 +612,7 @@ class RES:
 		self.itr_scale = 0
 		self.scaley = scaley
 		self.scalex = scalex
+		self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.rotate_around_x = self.getCenter()[0]
 		self.rotate_around_y = self.getCenter()[1]
@@ -699,8 +645,6 @@ class RES:
 				self.res_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -710,8 +654,6 @@ class RES:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.res_p_coords = self.res_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.res_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -722,6 +664,7 @@ class RES:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -833,8 +776,6 @@ class NMOS:
 			self.mosfet_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -842,8 +783,6 @@ class NMOS:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.mosfet_p_coords = self.mosfet_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.mosfet_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -854,6 +793,7 @@ class NMOS:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -871,8 +811,6 @@ class NMOS:
 			self.mosfet_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -891,6 +829,7 @@ class NMOS:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -929,27 +868,17 @@ class NMOS:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
 
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
 
-		# if self.itr_rotate > self.no_of_itr_rotate:
-		# 	self.mosfet_p_coords = self.mosfet_p_coords_tmp2[:]
-		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -958,8 +887,6 @@ class NMOS:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.mosfet_p_coords = self.mosfet_p_coords_tmp3[:]
-			# for i in range(0, self.items):
-			# 	self.mosfet_p_coords_tmp[i] = (0,0,0,0)
 			return	
 		
 		self.scrolate_kernal()
@@ -972,6 +899,9 @@ class NMOS:
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposx - self.getCenter()[0]
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.angle = angle
 		self.anglex = 0
@@ -1011,8 +941,6 @@ class NMOS:
 				self.mosfet_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -1022,8 +950,6 @@ class NMOS:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.mosfet_p_coords = self.mosfet_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.mosfet_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -1034,6 +960,7 @@ class NMOS:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -1146,8 +1073,6 @@ class PMOS:
 			self.mosfet_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -1155,8 +1080,6 @@ class PMOS:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.mosfet_p_coords = self.mosfet_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.mosfet_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -1167,6 +1090,7 @@ class PMOS:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -1184,8 +1108,6 @@ class PMOS:
 			self.mosfet_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -1194,8 +1116,6 @@ class PMOS:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.mosfet_p_coords = self.mosfet_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.mosfet_p_coords_tmp[i] = (0,0,0,0)
 			return
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
@@ -1204,6 +1124,7 @@ class PMOS:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -1242,16 +1163,12 @@ class PMOS:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
 
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -1260,9 +1177,6 @@ class PMOS:
 		# if self.itr_rotate > self.no_of_itr_rotate:
 		# 	self.mosfet_p_coords = self.mosfet_p_coords_tmp2[:]
 		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -1285,6 +1199,9 @@ class PMOS:
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposx - self.getCenter()[0]
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_scale = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time * framerate/1000
 
 		self.angle = angle
 		self.anglex = 0
@@ -1323,8 +1240,6 @@ class PMOS:
 				self.mosfet_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -1346,6 +1261,7 @@ class PMOS:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -1394,8 +1310,6 @@ class WIRE:
 
 		self.wire_p_coords[0] = (self.startx, self.starty, self.endx, self.endy)
 
-		# self.reCenter()
-
 		self.wire_p[0] = c.create_line(self.wire_p_coords[0], arrow='none', fill=self.color, width=width, joinstyle='bevel')
 
 		self.appear = 1
@@ -1433,8 +1347,6 @@ class WIRE:
 			self.wire_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -1442,8 +1354,6 @@ class WIRE:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.wire_p_coords = self.wire_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.wire_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -1454,6 +1364,7 @@ class WIRE:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -1471,8 +1382,6 @@ class WIRE:
 			self.wire_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -1481,8 +1390,6 @@ class WIRE:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.wire_p_coords = self.wire_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.wire_p_coords_tmp[i] = (0,0,0,0)
 			return
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
@@ -1491,6 +1398,7 @@ class WIRE:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -1529,27 +1437,15 @@ class WIRE:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
 
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
-
 		self.itr_rotate = self.itr_rotate + 1
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
-
-		# if self.itr_rotate > self.no_of_itr_rotate:
-		# 	self.wire_p_coords = self.wire_p_coords_tmp2[:]
-		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -1558,8 +1454,6 @@ class WIRE:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.wire_p_coords = self.wire_p_coords_tmp3[:]
-			# for i in range(0, self.items):
-			# 	self.wire_p_coords_tmp[i] = (0,0,0,0)
 			return	
 		
 		self.scrolate_kernal()
@@ -1572,6 +1466,9 @@ class WIRE:
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposx - self.getCenter()[0]
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_scale = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time * framerate/1000
 
 		self.angle = angle
 		self.anglex = 0
@@ -1610,8 +1507,6 @@ class WIRE:
 				self.wire_p_coords_tmp[i] = self.evl			
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -1620,8 +1515,6 @@ class WIRE:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.wire_p_coords = self.wire_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.wire_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -1632,6 +1525,7 @@ class WIRE:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -1728,8 +1622,6 @@ class IDC:
 			self.idc_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -1737,8 +1629,6 @@ class IDC:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.idc_p_coords = self.idc_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.idc_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -1749,6 +1639,7 @@ class IDC:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -1766,8 +1657,6 @@ class IDC:
 			self.idc_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -1776,8 +1665,6 @@ class IDC:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.idc_p_coords = self.idc_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.idc_p_coords_tmp[i] = (0,0,0,0)
 			return
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
@@ -1787,6 +1674,7 @@ class IDC:
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
 	 	self.animation_time = animation_time
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
 	 	self.move_trigger()
@@ -1824,8 +1712,6 @@ class IDC:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -1839,13 +1725,6 @@ class IDC:
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
 
-		# if self.itr_rotate > self.no_of_itr_rotate:
-		# 	self.idc_p_coords = self.idc_p_coords_tmp2[:]
-		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
-
 		self.itr_scale = self.itr_scale + 1
 
 		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
@@ -1853,8 +1732,6 @@ class IDC:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.idc_p_coords = self.idc_p_coords_tmp3[:]
-			# for i in range(0, self.items):
-			# 	self.idc_p_coords_tmp[i] = (0,0,0,0)
 			return	
 		
 		self.scrolate_kernal()
@@ -1867,6 +1744,9 @@ class IDC:
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposx - self.getCenter()[0]
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_scale = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time * framerate/1000
 
 		self.angle = angle
 		self.anglex = 0
@@ -1905,8 +1785,6 @@ class IDC:
 				self.idc_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -1915,8 +1793,6 @@ class IDC:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.idc_p_coords = self.idc_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.idc_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -1927,6 +1803,7 @@ class IDC:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -2023,8 +1900,6 @@ class VDC:
 			self.vdc_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -2032,8 +1907,6 @@ class VDC:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.vdc_p_coords = self.vdc_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.vdc_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -2044,6 +1917,7 @@ class VDC:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -2061,8 +1935,6 @@ class VDC:
 			self.vdc_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -2071,8 +1943,6 @@ class VDC:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.vdc_p_coords = self.vdc_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.vdc_p_coords_tmp[i] = (0,0,0,0)
 			return
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
@@ -2081,6 +1951,7 @@ class VDC:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -2119,27 +1990,17 @@ class VDC:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
 
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
 
-		# if self.itr_rotate > self.no_of_itr_rotate:
-		# 	self.vdc_p_coords = self.vdc_p_coords_tmp2[:]
-		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -2148,8 +2009,6 @@ class VDC:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.vdc_p_coords = self.vdc_p_coords_tmp3[:]
-			# for i in range(0, self.items):
-			# 	self.vdc_p_coords_tmp[i] = (0,0,0,0)
 			return	
 		
 		self.scrolate_kernal()
@@ -2162,6 +2021,9 @@ class VDC:
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposx - self.getCenter()[0]
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time * framerate/1000
+		self.no_of_itr_scale = self.animation_time * framerate/1000
 
 		self.angle = angle
 		self.anglex = 0
@@ -2200,8 +2062,6 @@ class VDC:
 				self.vdc_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -2211,8 +2071,6 @@ class VDC:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.vdc_p_coords = self.vdc_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.vdc_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -2223,6 +2081,7 @@ class VDC:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -2322,8 +2181,6 @@ class VCVS:
 			self.vcvs_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -2331,8 +2188,6 @@ class VCVS:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.vcvs_p_coords = self.vcvs_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.vcvs_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -2343,6 +2198,7 @@ class VCVS:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -2360,8 +2216,6 @@ class VCVS:
 			self.vcvs_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -2370,8 +2224,6 @@ class VCVS:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.vcvs_p_coords = self.vcvs_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.vcvs_p_coords_tmp[i] = (0,0,0,0)
 			return
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
@@ -2380,6 +2232,7 @@ class VCVS:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -2418,27 +2271,15 @@ class VCVS:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
 
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
-
 		self.itr_rotate = self.itr_rotate + 1
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
-
-		# if self.itr_rotate > self.no_of_itr_rotate:
-		# 	self.vcvs_p_coords = self.vcvs_p_coords_tmp2[:]
-		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -2447,8 +2288,6 @@ class VCVS:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.vcvs_p_coords = self.vcvs_p_coords_tmp3[:]
-			# for i in range(0, self.items):
-			# 	self.vcvs_p_coords_tmp[i] = (0,0,0,0)
 			return	
 		
 		self.scrolate_kernal()
@@ -2461,6 +2300,9 @@ class VCVS:
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposx - self.getCenter()[0]
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_scale = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time * framerate/1000
 
 		self.angle = angle
 		self.anglex = 0
@@ -2499,8 +2341,6 @@ class VCVS:
 				self.vcvs_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -2510,8 +2350,6 @@ class VCVS:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.vcvs_p_coords = self.vcvs_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.vcvs_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -2522,6 +2360,7 @@ class VCVS:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -2621,8 +2460,6 @@ class VCCS:
 			self.vccs_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -2630,8 +2467,6 @@ class VCCS:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.vccs_p_coords = self.vccs_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.vccs_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -2642,6 +2477,7 @@ class VCCS:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -2659,8 +2495,6 @@ class VCCS:
 			self.vccs_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -2669,9 +2503,8 @@ class VCCS:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.vccs_p_coords = self.vccs_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.vccs_p_coords_tmp[i] = (0,0,0,0)
 			return
+
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
 
@@ -2679,6 +2512,7 @@ class VCCS:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -2717,8 +2551,6 @@ class VCCS:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -2732,13 +2564,6 @@ class VCCS:
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
 
-		# if self.itr_rotate > self.no_of_itr_rotate:
-		# 	self.vccs_p_coords = self.vccs_p_coords_tmp2[:]
-		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
-
 		self.itr_scale = self.itr_scale + 1
 
 		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
@@ -2746,8 +2571,6 @@ class VCCS:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.vccs_p_coords = self.vccs_p_coords_tmp3[:]
-			# for i in range(0, self.items):
-			# 	self.vccs_p_coords_tmp[i] = (0,0,0,0)
 			return	
 		
 		self.scrolate_kernal()
@@ -2760,6 +2583,9 @@ class VCCS:
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposx - self.getCenter()[0]
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_scale = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time * framerate/1000
 
 		self.angle = angle
 		self.anglex = 0
@@ -2798,8 +2624,6 @@ class VCCS:
 				self.vccs_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -2809,8 +2633,6 @@ class VCCS:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.vccs_p_coords = self.vccs_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.vccs_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -2821,6 +2643,7 @@ class VCCS:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -2899,8 +2722,6 @@ class PLOT:
 			self.plot_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -2908,8 +2729,6 @@ class PLOT:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.plot_p_coords = self.plot_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.plot_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -2920,6 +2739,7 @@ class PLOT:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -2937,8 +2757,6 @@ class PLOT:
 			self.plot_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -2947,9 +2765,8 @@ class PLOT:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.plot_p_coords = self.plot_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.plot_p_coords_tmp[i] = (0,0,0,0)
 			return
+
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
 
@@ -2958,6 +2775,7 @@ class PLOT:
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
 	 	self.animation_time = animation_time
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
 	 	self.move_trigger()
@@ -2994,23 +2812,15 @@ class PLOT:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
 
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
-
 		self.itr_rotate = self.itr_rotate + 1
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -3029,6 +2839,9 @@ class PLOT:
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposy - self.getCenter()[1]
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_scale = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time * framerate/1000
 
 		self.angle = angle
 		self.anglex = 0
@@ -3067,8 +2880,6 @@ class PLOT:
 				self.plot_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -3078,8 +2889,6 @@ class PLOT:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.plot_p_coords = self.plot_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.plot_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -3090,6 +2899,7 @@ class PLOT:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -3144,7 +2954,6 @@ class TRACE:
 
 		for i in range(0, self.items-1):
 
-
 			self.evl = (math_rotate(self.trace_p_coords[i][0], self.trace_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
 									math_rotate(self.trace_p_coords[i][0], self.trace_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
 									math_rotate(self.trace_p_coords[i][2], self.trace_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
@@ -3155,8 +2964,6 @@ class TRACE:
 			self.trace_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -3164,8 +2971,6 @@ class TRACE:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.trace_p_coords = self.trace_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.trace_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -3176,6 +2981,7 @@ class TRACE:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -3193,8 +2999,6 @@ class TRACE:
 			self.trace_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -3203,8 +3007,6 @@ class TRACE:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.trace_p_coords = self.trace_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.trace_p_coords_tmp[i] = (0,0,0,0)
 			return
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
@@ -3213,6 +3015,7 @@ class TRACE:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -3250,23 +3053,15 @@ class TRACE:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
 
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
-
 		self.itr_rotate = self.itr_rotate + 1
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -3285,6 +3080,9 @@ class TRACE:
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposy - self.getCenter()[1]
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_scale = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time * framerate/1000
 
 		self.angle = angle
 		self.anglex = 0
@@ -3324,8 +3122,6 @@ class TRACE:
 				self.trace_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -3335,8 +3131,6 @@ class TRACE:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.trace_p_coords = self.trace_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.trace_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -3347,6 +3141,7 @@ class TRACE:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -3397,7 +3192,6 @@ class WAVE:
 
 		for i in range(0, self.items-1):
 
-
 			self.evl = (math_rotate(self.wave_p_coords[i][0], self.wave_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
 									math_rotate(self.wave_p_coords[i][0], self.wave_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
 									math_rotate(self.wave_p_coords[i][2], self.wave_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
@@ -3408,8 +3202,6 @@ class WAVE:
 			self.wave_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -3417,8 +3209,6 @@ class WAVE:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.wave_p_coords = self.wave_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.wave_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -3429,6 +3219,7 @@ class WAVE:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -3446,8 +3237,6 @@ class WAVE:
 			self.wave_p_coords_tmp[i] = self.evl
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -3456,8 +3245,6 @@ class WAVE:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.wave_p_coords = self.wave_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.wave_p_coords_tmp[i] = (0,0,0,0)
 			return
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
@@ -3467,6 +3254,7 @@ class WAVE:
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
 	 	self.animation_time = animation_time
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
 	 	self.move_trigger()
@@ -3497,8 +3285,6 @@ class WAVE:
 				self.wave_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -3508,8 +3294,6 @@ class WAVE:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.wave_p_coords = self.wave_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.wave_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -3520,6 +3304,7 @@ class WAVE:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -3545,7 +3330,6 @@ class WAVE2:
 
 		for i in range(0, len(xvals)-1):
 			self.wave2_p_coords[i] = (self.posx + xvals[i], self.posy - yvals[i], self.posx + xvals[i+1], self.posy - yvals[i+1])
-			# print((self.posx + xvals[i], self.posy - yvals[i], self.posx + xvals[i+1], self.posy - yvals[i+1]))
 
 		for i in range(0,len(xvals)-1):
 			self.wave2_p[i] = c.create_line(self.wave2_p_coords[i], arrow='none', fill=color, width=2)
@@ -3577,13 +3361,9 @@ class WAVE2:
 	def getCenter(self):
 		for i in range(0, self.items-1):
 			self.xmin_tmp[i] = min(self.wave2_p_coords[i][0], self.wave2_p_coords[i][2])
-			# print(self.xmin_tmp[i])
 			self.xmax_tmp[i] = max(self.wave2_p_coords[i][0], self.wave2_p_coords[i][2])
-			# print(self.xmax_tmp[i])
 			self.ymin_tmp[i] = min(self.wave2_p_coords[i][1], self.wave2_p_coords[i][3])
-			# print(self.ymin_tmp[i])
 			self.ymax_tmp[i] = max(self.wave2_p_coords[i][1], self.wave2_p_coords[i][3])
-			# print(self.ymax_tmp[i])
 		self.xmin_tmp[self.items-1] = self.xmin_tmp[self.items-2]
 		self.xmax_tmp[self.items-1] = self.xmax_tmp[self.items-2]
 		self.ymin_tmp[self.items-1] = self.ymin_tmp[self.items-2]
@@ -3600,8 +3380,6 @@ class WAVE2:
 			self.wave2_p_coords_tmp[i] = (self.evl)
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -3609,8 +3387,6 @@ class WAVE2:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.wave2_p_coords = self.wave2_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.wave2_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -3621,6 +3397,7 @@ class WAVE2:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -3638,8 +3415,6 @@ class WAVE2:
 			self.wave2_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -3648,8 +3423,6 @@ class WAVE2:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.wave2_p_coords = self.wave2_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.wave2_p_coords_tmp[i] = (0,0,0,0)
 			return
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
@@ -3658,6 +3431,7 @@ class WAVE2:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -3689,8 +3463,6 @@ class WAVE2:
 				self.wave2_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -3700,8 +3472,6 @@ class WAVE2:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.wave2_p_coords = self.wave2_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.wave2_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -3712,6 +3482,7 @@ class WAVE2:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -3812,8 +3583,6 @@ class SUPPLY:
 			self.supply_p_coords_tmp[i] = self.evl
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -3821,8 +3590,6 @@ class SUPPLY:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.supply_p_coords = self.supply_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.supply_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -3833,6 +3600,7 @@ class SUPPLY:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -3850,8 +3618,6 @@ class SUPPLY:
 			self.supply_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -3860,8 +3626,6 @@ class SUPPLY:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.supply_p_coords = self.supply_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.supply_p_coords_tmp[i] = (0,0,0,0)
 			return
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
@@ -3870,6 +3634,7 @@ class SUPPLY:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -3908,27 +3673,16 @@ class SUPPLY:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
 
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
-
-		# if self.itr_rotate > self.no_of_itr_rotate:
-		# 	self.supply_p_coords = self.supply_p_coords_tmp2[:]
-		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -3937,8 +3691,6 @@ class SUPPLY:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.supply_p_coords = self.supply_p_coords_tmp3[:]
-			# for i in range(0, self.items):
-			# 	self.supply_p_coords_tmp[i] = (0,0,0,0)
 			return	
 		
 		self.scrolate_kernal()
@@ -3948,6 +3700,9 @@ class SUPPLY:
 		self.itr_move = 0
 		self.deltax1 = 0
 		self.deltay1 = 0
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_scale = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time * framerate/1000
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposx - self.getCenter()[0]
@@ -3990,8 +3745,6 @@ class SUPPLY:
 				self.supply_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -4001,8 +3754,6 @@ class SUPPLY:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.supply_p_coords = self.supply_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.supply_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -4013,6 +3764,7 @@ class SUPPLY:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -4104,8 +3856,6 @@ class GROUND:
 			self.ground_p_coords_tmp[i] = self.evl
 
 	def rotate_trigger(self):
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
 
 		self.itr_rotate = self.itr_rotate + 1
 
@@ -4113,8 +3863,6 @@ class GROUND:
 
 		if self.itr_rotate > self.no_of_itr_rotate:
 			self.ground_p_coords = self.ground_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.ground_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.rotate_kernal()
@@ -4125,6 +3873,7 @@ class GROUND:
 	 	self.angle = angle
 	 	self.anglex = 0
 	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.rotate_trigger()
@@ -4142,8 +3891,6 @@ class GROUND:
 			self.ground_p_coords_tmp[i] = (self.evl)
 
 	def move_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
@@ -4152,8 +3899,6 @@ class GROUND:
 
 		if self.itr_move > self.no_of_itr_move:
 			self.ground_p_coords = self.ground_p_coords_tmp[:]
-			# for i in range(0, self.items):
-			# 	self.ground_p_coords_tmp[i] = (0,0,0,0)
 			return
 		self.move_kernal()
 		master.after(int(1000./framerate), self.move_trigger)
@@ -4162,6 +3907,7 @@ class GROUND:
 	 	self.itr_move = 0
 	 	self.deltax1 = 0
 	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
 	 	self.animation_time = animation_time
 	 	self.deltax = newposx - self.getCenter()[0]
 	 	self.deltay = newposy - self.getCenter()[1]
@@ -4200,27 +3946,15 @@ class GROUND:
 
 			
 	def scrolate_trigger(self):
-		if self.itr_move == 0:
-			self.no_of_itr_move = self.animation_time * framerate/1000
 
 		self.itr_move = self.itr_move + 1
 
 		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
 		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
 
-		if self.itr_rotate == 0:
-			self.no_of_itr_rotate = self.animation_time*framerate/1000
-
 		self.itr_rotate = self.itr_rotate + 1
 
 		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
-
-		# if self.itr_rotate > self.no_of_itr_rotate:
-		# 	self.ground_p_coords = self.ground_p_coords_tmp2[:]
-		# 	return
-
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -4229,8 +3963,6 @@ class GROUND:
 
 		if self.itr_scale > self.no_of_itr_scale:
 			self.ground_p_coords = self.ground_p_coords_tmp3[:]
-			# for i in range(0, self.items):
-			# 	self.ground_p_coords_tmp[i] = (0,0,0,0)
 			return	
 		
 		self.scrolate_kernal()
@@ -4240,6 +3972,9 @@ class GROUND:
 		self.itr_move = 0
 		self.deltax1 = 0
 		self.deltay1 = 0
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_scale = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.animation_time * framerate/1000
 		self.animation_time = animation_time
 		self.deltax = newposx - self.getCenter()[0]
 		self.deltay = newposx - self.getCenter()[0]
@@ -4282,8 +4017,6 @@ class GROUND:
 				self.ground_p_coords_tmp[i] = self.evl
 
 	def scale_trigger(self):
-		if self.itr_scale == 0:
-			self.no_of_itr_scale = self.animation_time*framerate/1000
 
 		self.itr_scale = self.itr_scale + 1
 
@@ -4293,8 +4026,6 @@ class GROUND:
 		if self.itr_scale > self.no_of_itr_scale:
 			self.ground_p_coords = self.ground_p_coords_tmp[:]
 			self.appear = 0
-			# for i in range(0, self.items):
-			# 	self.ground_p_coords_tmp[i] = (0,0,0,0)
 			return
 
 		self.scale_kernal()
@@ -4305,6 +4036,7 @@ class GROUND:
 	 	self.itr_scale = 0
 	 	self.scaley = scaley
 	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
@@ -4318,6 +4050,10 @@ class Orchestra:
 		self.seq = 0
 
 	def animate_kernal(self):
+		if self.seq == 0:
+			re.init(100,100,100,100)
+		if self.seq == 1:
+			re.scrolate(200,200,90,1,1,1000)
 		return
 
 	def animate_trigger(self):
@@ -4328,7 +4064,7 @@ class Orchestra:
 	def animate(self):	 	
 	 	self.animate_trigger()
 
-
+re = BOX()
 o = Orchestra()
 o.animate()
 
