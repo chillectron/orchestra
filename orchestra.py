@@ -4043,6 +4043,176 @@ class GROUND:
 
 
 
+class TEXT:
+
+	def init(self, posx, posy, text, fontsize=30, angle=0, color='#00FF00'):
+
+		self.posx = posx
+		self.posy = posy
+		self.color = color
+		self.angle = angle
+		self.fontsize = fontsize
+
+		self.posx_tmp = 0
+		self.posy_tmp = 0
+		self.color_tmp = 0
+		self.angle_tmp = 0
+		self.fontsize_tmp = 0
+
+		self.itr_rotate = 0
+		self.itr_move = 0
+		self.itr_scale = 0
+		self.itr_move = 0
+		self.itr_rotate = 0
+		self.itr_scale = 0
+		self.no_of_itr_move = 0
+		self.no_of_itr_rotate = 0
+		self.no_of_itr_scale = 0
+		self.anglem = 0
+		self.anglex = 0
+		self.angle = 0
+		self.deltax = 0
+		self.deltay = 0
+		self.deltaxm = 0
+		self.deltaym = 0
+		self.deltax1 = 0
+		self.deltay1 = 0
+		self.scale_int = 0
+		self.scalev = 0
+
+		self.animation_time = 0
+
+		self.text_p = c.create_text(self.posx, self.posy, text=text, fill=self.color, font=("Arial", self.fontsize), angle=self.angle)
+
+
+	def rotate_kernal(self):
+
+			c.itemconfig(self.text_p, angle=self.anglex)
+
+	def rotate_trigger(self):
+
+		self.itr_rotate = self.itr_rotate + 1
+
+		self.anglex = self.angle + self.anglem * ease(self.itr_rotate/self.no_of_itr_rotate)
+
+		if self.itr_rotate > self.no_of_itr_rotate:
+			self.angle = self.angle + self.anglex
+			return
+
+		self.rotate_kernal()
+		master.after(int(1000./framerate), self.rotate_trigger)
+
+	def rotate(self, angle, animation_time):
+	 	self.animation_time = animation_time
+	 	self.anglem = angle
+	 	self.anglex = 0
+	 	self.itr_rotate = 0
+	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
+	 	self.rotate_trigger()
+
+	def move_kernal(self):
+
+		c.coords(self.text_p, self.deltax1, self.deltay1)
+
+	def move_trigger(self):
+
+		self.itr_move = self.itr_move + 1
+
+		self.deltax1 = self.posx + (self.deltaxm - self.posx) * ease(self.itr_move/self.no_of_itr_move)
+		self.deltay1 = self.posy + (self.deltaym - self.posy) * ease(self.itr_move/self.no_of_itr_move)
+
+		if self.itr_move > self.no_of_itr_move:
+			self.posx = self.deltax1
+			self.posy = self.deltay1
+			return
+
+		self.move_kernal()
+		master.after(int(1000./framerate), self.move_trigger)
+
+	def translate(self, newposx, newposy, animation_time):
+	 	self.itr_move = 0
+	 	self.deltax1 = 0
+	 	self.deltay1 = 0
+	 	self.deltaxm = newposx
+	 	self.deltaym = newposy
+	 	self.animation_time = animation_time
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
+	 	self.move_trigger()
+
+	def scale_kernal(self):
+
+			c.itemconfig(self.text_p, font=("Arial", round(self.scale_int)))
+
+	def scale_trigger(self):
+
+		self.itr_scale = self.itr_scale + 1
+
+		self.scale_int = self.fontsize + (self.scalev - self.fontsize) * ease(self.itr_scale/self.no_of_itr_scale)
+
+		if self.itr_scale > self.no_of_itr_scale:
+			self.fontsize = self.scale_int
+			return
+
+		self.scale_kernal()
+		master.after(int(1000./framerate), self.scale_trigger)
+
+	def scale(self, scale, animation_time):
+		self.animation_time = animation_time
+		self.itr_scale = 0
+		self.scale_int = 0
+		self.scalev = scale
+		self.no_of_itr_scale = self.animation_time*framerate/1000
+		self.scale_trigger()
+
+	def scrolate_kernal(self):
+
+		c.itemconfig(self.text_p, font=("Arial", round(self.scale_int)))
+		c.itemconfig(self.text_p, angle=self.anglex)
+		c.coords(self.text_p, self.deltax1, self.deltay1)
+
+			
+	def scrolate_trigger(self):
+
+		self.itr_rotate = self.itr_rotate + 1
+
+		self.anglex = self.angle + self.anglem * ease(self.itr_rotate/self.no_of_itr_rotate)
+
+		self.itr_move = self.itr_move + 1
+
+		self.deltax1 = self.posx + (self.deltaxm - self.posx) * ease(self.itr_move/self.no_of_itr_move)
+		self.deltay1 = self.posy + (self.deltaym - self.posy) * ease(self.itr_move/self.no_of_itr_move)
+
+		self.itr_scale = self.itr_scale + 1
+
+		self.scale_int = self.fontsize + (self.scalev - self.fontsize) * ease(self.itr_scale/ self.no_of_itr_scale)
+
+		if self.itr_scale > self.no_of_itr_scale:
+			self.fontsize = self.scale_int
+			self.angle = self.angle + self.anglex
+			self.posx = self.deltax1
+			self.posy = self.deltay1
+			return
+
+		self.scrolate_kernal()
+		master.after(int(1000./framerate), self.scrolate_trigger)
+
+	def scrolate(self, newposx, newposy, angle, scale, animation_time):
+		self.animation_time = animation_time
+		self.anglem = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.itr_move = 0
+		self.deltax1 = 0
+		self.deltay1 = 0
+		self.deltaxm = newposx
+		self.deltaym = newposy
+		self.itr_scale = 0
+		self.scale_int = 0
+		self.scalev = scale
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		self.no_of_itr_scale = self.animation_time*framerate/1000
+		self.no_of_itr_move = self.animation_time*framerate/1000
+		self.scrolate_trigger()
 
 class Orchestra:
 
@@ -4051,9 +4221,9 @@ class Orchestra:
 
 	def animate_kernal(self):
 		if self.seq == 0:
-			re.init(100,100,100,100)
+			tx.scrolate(200,200,0,40,1000)
 		if self.seq == 1:
-			re.scrolate(200,200,90,1,1,1000)
+			tx.scrolate(300,300,360,50,1000)
 		return
 
 	def animate_trigger(self):
@@ -4064,7 +4234,8 @@ class Orchestra:
 	def animate(self):	 	
 	 	self.animate_trigger()
 
-re = BOX()
+tx = TEXT()
+tx.init(100,100,"1 uF")
 o = Orchestra()
 o.animate()
 
