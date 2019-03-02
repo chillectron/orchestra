@@ -48,7 +48,7 @@ def bezier_curve(points, nTimes=1000):
 
     t = np.linspace(0.0, 1.0, nTimes)
 
-    polynomial_array = np.array([ bernstein_poly(i, nPoints-1, t) for i in range(0, nPoints)   ])
+    polynomial_array = np.array([ bernstein_poly(i, nPoints-1, t) for i in range(0, nPoints)])
 
     xvals = np.dot(xPoints, polynomial_array)
     yvals = np.dot(yPoints, polynomial_array)
@@ -89,6 +89,272 @@ class DOT:
 		self.items = 1
 		self.dot_p = [0]*self.items
 		self.dot_p[0] = c.create_oval(posx-2, posy-2, posx+2, posy+2, outline='#FFFFFF',fill='#FFFFFF', width=2)
+
+class CIRCLE:
+	def init(self, posx, posy, width, height):
+		self.posx = posx;
+		self.posy = posy;
+		self.items = 1
+		self.circle_p = [0]*self.items
+		self.circle_p_coords = [0]*self.items
+		self.circle_p_coords_tmp = [0]*self.items
+		self.circle_p_coords_tmp2 = [0]*self.items
+		self.circle_p_coords_tmp3 = [0]*self.items
+		self.xmin_tmp = [0]*self.items
+		self.xmax_tmp = [0]*self.items
+		self.ymin_tmp = [0]*self.items
+		self.ymax_tmp = [0]*self.items
+
+		self.itr_move = 0
+		self.itr_rotate = 0
+		self.itr_scale = 0
+		self.no_of_itr_move = 0
+		self.no_of_itr_rotate = 0
+		self.no_of_itr_scale = 0
+		self.anglex = 0
+		self.angle = 0
+		self.deltax = 0
+		self.deltay = 0
+		self.deltax1 = 0
+		self.deltay1 = 0
+		self.scalex_int = 0
+		self.scaley_int = 0
+		self.deltay1 = 0
+		self.scalex = 0
+		self.scaley = 0
+
+		self.circle_p_coords[0] = (posx-width/2, posy-height/2, posx+width/2, posy+height/2)
+
+		self.reCenter()
+
+		self.circle_p[0] = c.create_oval(self.circle_p_coords[0], fill='#FFFFFF', width=2)
+
+		self.appear = 1
+		self.scale(1,1,500)
+
+
+	def reCenter(self):
+
+		self.rotate_around_x = self.getCenter()[0]
+		self.rotate_around_y = self.getCenter()[1]
+
+	def getCenter(self):	
+		return [self.posx, self.posy]
+
+	def rotate_kernal(self):
+
+		for i in range(0, self.items):
+
+			self.evl = (math_rotate(self.circle_p_coords[i][0], self.circle_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.circle_p_coords[i][0], self.circle_p_coords[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+						math_rotate(self.circle_p_coords[i][2], self.circle_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.circle_p_coords[i][2], self.circle_p_coords[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
+
+			c.coords(self.circle_p[i], self.evl)
+
+			self.circle_p_coords_tmp[i] = (self.evl)
+
+	def rotate_trigger(self):
+		
+		self.itr_rotate = self.itr_rotate + 1
+
+		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
+
+		if self.itr_rotate > self.no_of_itr_rotate:
+			self.circle_p_coords = self.circle_p_coords_tmp[:]
+			return
+
+		self.rotate_kernal()
+		master.after(int(1000/framerate), self.rotate_trigger)
+
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		self.rotate_trigger()
+
+	def move_kernal(self):
+		for i in range(0,self.items):
+
+			self.evl = (math_translate(self.circle_p_coords[i][0], self.circle_p_coords[i][1], self.deltax1, self.deltay1)[0],
+						math_translate(self.circle_p_coords[i][0], self.circle_p_coords[i][1], self.deltax1, self.deltay1)[1],
+						math_translate(self.circle_p_coords[i][2], self.circle_p_coords[i][3], self.deltax1, self.deltay1)[0],
+						math_translate(self.circle_p_coords[i][2], self.circle_p_coords[i][3], self.deltax1, self.deltay1)[1])
+
+			c.coords(self.circle_p[i], self.evl)
+
+			self.circle_p_coords_tmp[i] = (self.evl)
+
+	def move_trigger(self):
+
+		self.itr_move = self.itr_move + 1
+
+		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
+		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
+
+		if self.itr_move > self.no_of_itr_move:
+			self.circle_p_coords = self.circle_p_coords_tmp[:]
+			# for i in range(0, self.items):
+			# 	self.circle_p_coords_tmp[i] = (0,0,0,0)
+			return
+		self.move_kernal()
+		master.after(int(1000./framerate), self.move_trigger)
+
+	def translate(self, newposx, newposy, animation_time):
+	 	self.itr_move = 0
+	 	self.deltax1 = 0
+	 	self.deltay1 = 0
+	 	self.no_of_itr_move = self.animation_time * framerate/1000
+	 	self.animation_time = animation_time
+	 	self.deltax = newposx - self.getCenter()[0]
+	 	self.deltay = newposy - self.getCenter()[1]
+	 	self.move_trigger()
+
+
+	def scrolate_kernal(self):
+		for i in range(0,self.items):
+
+			self.evl = (math_scale(self.circle_p_coords[i][0],self.circle_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+						math_scale(self.circle_p_coords[i][0],self.circle_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+						math_scale(self.circle_p_coords[i][2],self.circle_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+						math_scale(self.circle_p_coords[i][2],self.circle_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+			c.coords(self.circle_p[i], self.evl)
+
+			self.circle_p_coords_tmp[i] = self.evl
+
+			self.evl = (math_rotate(self.circle_p_coords_tmp[i][0], self.circle_p_coords_tmp[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.circle_p_coords_tmp[i][0], self.circle_p_coords_tmp[i][1], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1],
+						math_rotate(self.circle_p_coords_tmp[i][2], self.circle_p_coords_tmp[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[0],
+						math_rotate(self.circle_p_coords_tmp[i][2], self.circle_p_coords_tmp[i][3], self.rotate_around_x, self.rotate_around_y, self.anglex/(1))[1])
+
+			c.coords(self.circle_p[i], self.evl)
+
+			self.circle_p_coords_tmp2[i] = self.evl
+
+			self.evl = (math_translate(self.circle_p_coords_tmp2[i][0], self.circle_p_coords_tmp2[i][1], self.deltax1, self.deltay1)[0],
+						math_translate(self.circle_p_coords_tmp2[i][0], self.circle_p_coords_tmp2[i][1], self.deltax1, self.deltay1)[1],
+						math_translate(self.circle_p_coords_tmp2[i][2], self.circle_p_coords_tmp2[i][3], self.deltax1, self.deltay1)[0],
+						math_translate(self.circle_p_coords_tmp2[i][2], self.circle_p_coords_tmp2[i][3], self.deltax1, self.deltay1)[1])
+
+			c.coords(self.circle_p[i], self.evl)
+
+			self.circle_p_coords_tmp3[i] = (self.evl)
+
+			
+	def scrolate_trigger(self):
+
+		self.itr_move = self.itr_move + 1
+
+		self.deltax1 = self.deltax * ease(self.itr_move/self.no_of_itr_move)
+		self.deltay1 = self.deltay * ease(self.itr_move/self.no_of_itr_move)
+
+		self.itr_rotate = self.itr_rotate + 1
+
+		self.anglex = self.angle*ease(self.itr_rotate/self.no_of_itr_rotate)
+
+		# if self.itr_rotate > self.no_of_itr_rotate:
+		# 	self.circle_p_coords = self.circle_p_coords_tmp2[:]
+		# 	return
+
+		self.itr_scale = self.itr_scale + 1
+
+		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
+		self.scaley_int = self.scaley * ease(self.itr_scale/ self.no_of_itr_scale)
+
+		if self.itr_scale > self.no_of_itr_scale:
+			self.circle_p_coords = self.circle_p_coords_tmp3[:]
+			# for i in range(0, self.items):
+			# 	self.circle_p_coords_tmp[i] = (0,0,0,0)
+			return	
+		
+		self.scrolate_kernal()
+		master.after(int(1000./framerate), self.scrolate_trigger)
+
+	def scrolate(self, newposx, newposy, angle, scalex, scaley, animation_time):
+		self.itr_move = 0
+		self.deltax1 = 0
+		self.deltay1 = 0
+		self.animation_time = animation_time
+		self.deltax = newposx - self.getCenter()[0]
+		self.deltay = newposx - self.getCenter()[0]
+
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.itr_scale = 0
+		self.no_of_itr_move = self.animation_time * framerate/1000
+		self.no_of_itr_rotate = self.no_of_itr_move
+		self.no_of_itr_scale = self.no_of_itr_rotate
+
+		self.scaley = scaley
+		self.scalex = scalex
+
+		self.rotate_around_x = self.getCenter()[0]
+		self.rotate_around_y = self.getCenter()[1]
+		self.scrolate_trigger()
+
+	def scale_kernal(self):
+
+		if self.appear:
+			for i in range(0, self.items):
+
+				self.evl =  (math_appear(self.circle_p_coords[i][0],self.circle_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_appear(self.circle_p_coords[i][0],self.circle_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_appear(self.circle_p_coords[i][2],self.circle_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_appear(self.circle_p_coords[i][2],self.circle_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+				c.coords(self.circle_p[i],self.evl)
+
+				self.circle_p_coords_tmp[i] = self.evl
+		else:
+			for i in range(0, self.items):
+
+				self.evl =  (math_scale(self.circle_p_coords[i][0],self.circle_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_scale(self.circle_p_coords[i][0],self.circle_p_coords[i][1],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1],
+							math_scale(self.circle_p_coords[i][2],self.circle_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[0],
+							math_scale(self.circle_p_coords[i][2],self.circle_p_coords[i][3],self.rotate_around_x,self.rotate_around_y,self.scalex_int,self.scaley_int)[1])
+
+				c.coords(self.circle_p[i],self.evl)
+
+				self.circle_p_coords_tmp[i] = self.evl
+
+	def scale_trigger(self):
+
+		self.itr_scale = self.itr_scale + 1
+
+		self.scalex_int = self.scalex * ease(self.itr_scale/ self.no_of_itr_scale)
+		self.scaley_int = self.scaley * ease(self.itr_scale/ self.no_of_itr_scale)
+
+		if self.itr_scale > self.no_of_itr_scale:
+			self.circle_p_coords = self.circle_p_coords_tmp[:]
+			self.appear = 0
+			return
+
+		self.scale_kernal()
+		master.after(int(1000./framerate), self.scale_trigger)
+
+	def scale(self, scalex, scaley, animation_time):
+	 	self.animation_time = animation_time
+	 	self.itr_scale = 0
+	 	self.scaley = scaley
+	 	self.scalex = scalex
+	 	self.no_of_itr_scale = self.animation_time*framerate/1000
+	 	self.rotate_around_x = self.getCenter()[0]
+	 	self.rotate_around_y = self.getCenter()[1]
+	 	self.scale_trigger()
+
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.circle_p[i])
 
 class BOX:
 	def init(self, posx, posy, width, height):
@@ -171,15 +437,19 @@ class BOX:
 		self.rotate_kernal()
 		master.after(int(1000/framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -376,6 +646,10 @@ class BOX:
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
 
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.box_p[i])
+
 	
 class RES:
 
@@ -492,15 +766,19 @@ class RES:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -669,6 +947,10 @@ class RES:
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
 
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.res_p[i])
+
 class NMOS:
 
 	def init(self, posx, posy, flip, color='#FFFFFF'):
@@ -788,15 +1070,19 @@ class NMOS:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -965,6 +1251,10 @@ class NMOS:
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
 
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.mosfet_p[i])
+
 
 class PMOS:
 
@@ -1085,15 +1375,19 @@ class PMOS:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -1266,6 +1560,10 @@ class PMOS:
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
 
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.mosfet_p[i])
+
 
 class WIRE:
 	def init(self, startx, starty, endx, endy, width=2, color='#FFFFFF'):
@@ -1359,15 +1657,19 @@ class WIRE:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -1529,6 +1831,10 @@ class WIRE:
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
+
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.wire_p[i])
 		
 
 class IDC:
@@ -1634,15 +1940,19 @@ class IDC:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -1807,7 +2117,10 @@ class IDC:
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
-		
+	
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.idc_p[i])
 
 class VDC:
 	def init(self, posx, posy):
@@ -1912,15 +2225,19 @@ class VDC:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -2085,6 +2402,10 @@ class VDC:
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
+
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.vdc_p[i])
 		
 class VCVS:
 	def init(self, posx, posy):
@@ -2193,15 +2514,19 @@ class VCVS:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -2364,6 +2689,10 @@ class VCVS:
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
+
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.vcvs_p[i])
 		
 class VCCS:
 	def init(self, posx, posy):
@@ -2472,15 +2801,19 @@ class VCCS:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -2648,6 +2981,10 @@ class VCCS:
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
 
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.vccs_p[i])
+
 
 class PLOT:
 	def init(self, posx, posy, size=cheight/2):
@@ -2734,15 +3071,19 @@ class PLOT:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -2904,6 +3245,10 @@ class PLOT:
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
 
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.plot_p[i])
+
 
 class TRACE:
 	def init(self, points, nTimes=50, color='#FFFFFF'):
@@ -2976,15 +3321,19 @@ class TRACE:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items-1):
@@ -3146,6 +3495,10 @@ class TRACE:
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
 
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.trace_p)
+
 
 class WAVE:
 	def init(self, posx, posy, eqn_in_x, stepsx=cheight/2, step_size=2, color='#FFFFFF'):
@@ -3214,15 +3567,19 @@ class WAVE:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items-1):
@@ -3309,6 +3666,10 @@ class WAVE:
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
 
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.wave_p[i])
+
 
 class WAVE2:
 	def init(self, posx, posy, eqn_in_x, stepsx=cheight/2, step_size=1, color='#FFFFFF'):
@@ -3392,15 +3753,19 @@ class WAVE2:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items-1):
@@ -3486,6 +3851,10 @@ class WAVE2:
 	 	self.rotate_around_x = self.getCenter()[0]
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
+
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.wave2_p[i])
 
 
 class SUPPLY:
@@ -3595,15 +3964,19 @@ class SUPPLY:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -3769,6 +4142,10 @@ class SUPPLY:
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
 
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.supply_p[i])
+
 class GROUND:
 
 	def init(self, posx, posy, color='#FFFFFF'):
@@ -3868,15 +4245,19 @@ class GROUND:
 		self.rotate_kernal()
 		master.after(int(1000./framerate), self.rotate_trigger)
 
-	def rotate(self, angle, animation_time):
-	 	self.animation_time = animation_time
-	 	self.angle = angle
-	 	self.anglex = 0
-	 	self.itr_rotate = 0
-	 	self.no_of_itr_rotate = self.animation_time*framerate/1000
-	 	self.rotate_around_x = self.getCenter()[0]
-	 	self.rotate_around_y = self.getCenter()[1]
-	 	self.rotate_trigger()
+	def rotate(self, angle, animation_time, centerx=0, centery=0):
+		self.animation_time = animation_time
+		self.angle = angle
+		self.anglex = 0
+		self.itr_rotate = 0
+		self.no_of_itr_rotate = self.animation_time*framerate/1000
+		if centerx==0:
+			self.rotate_around_x = self.getCenter()[0]
+			self.rotate_around_y = self.getCenter()[1]
+		else:
+			self.rotate_around_x = centerx
+			self.rotate_around_y = centery
+		self.rotate_trigger()
 
 	def move_kernal(self):
 		for i in range(0,self.items):
@@ -4041,6 +4422,9 @@ class GROUND:
 	 	self.rotate_around_y = self.getCenter()[1]
 	 	self.scale_trigger()
 
+	def delete(self):
+		for i in range(0,self.items):
+			c.delete(self.ground_p[i])
 
 
 class TEXT:
@@ -4214,6 +4598,10 @@ class TEXT:
 		self.no_of_itr_move = self.animation_time*framerate/1000
 		self.scrolate_trigger()
 
+	def delete(self):
+		c.delete(self.text_p)
+
+
 class Orchestra:
 
 	def __init__(self):
@@ -4221,9 +4609,9 @@ class Orchestra:
 
 	def animate_kernal(self):
 		if self.seq == 0:
-			tx.scrolate(200,200,0,40,1000)
+			wr.init(100,100,100,100)
 		if self.seq == 1:
-			tx.scrolate(300,300,360,50,1000)
+			wr.scrolate(400,400,0,1,1,500)
 		return
 
 	def animate_trigger(self):
@@ -4234,8 +4622,8 @@ class Orchestra:
 	def animate(self):	 	
 	 	self.animate_trigger()
 
-tx = TEXT()
-tx.init(100,100,"1 uF")
+
+wr = CIRCLE()
 o = Orchestra()
 o.animate()
 
